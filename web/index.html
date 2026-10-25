@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wx-agent-gateway · 本地 Agent 管理台</title>
+    <script>
+      // 首帧前根据持久化的主题给 <html> 打类，避免暗色刷新时闪白。
+      (function () {
+        try {
+          var theme = localStorage.getItem("theme");
+          var classList = document.documentElement.classList;
+          if (theme === "dark") classList.add("dark");
+          else if (theme === "light") classList.add("light");
+          else if (window.matchMedia("(prefers-color-scheme: dark)").matches) classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

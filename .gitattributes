@@ -1,0 +1,18 @@
+# Keep local/runtime artifacts out of git archive, even if tracked accidentally.
+/data export-ignore
+/node_modules export-ignore
+/web/dist export-ignore
+/release export-ignore
+/.zcode export-ignore
+/.codex export-ignore
+/.agents export-ignore
+/.claude export-ignore
+/.idea export-ignore
+/.vscode export-ignore
+/.env export-ignore
+/.env.* export-ignore
+/.npmrc export-ignore
+*.log export-ignore
+*.pem export-ignore
+*.key export-ignore
+*.tgz export-ignore

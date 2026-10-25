@@ -1,0 +1,8 @@
+{
+  "defaultCwd": "/absolute/path/to/project",
+  "agentTimeoutMs": 900000,
+  "codexSandbox": "workspace-write",
+  "allowedUsers": [],
+  "replyChunkLength": 2000,
+  "webPort": 4619
+}

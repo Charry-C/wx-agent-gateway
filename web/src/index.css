@@ -1,0 +1,185 @@
+@import "tailwindcss";
+
+/* dark: 变体改为类策略，与下面的令牌分支一致（由 lib/theme.ts 维护 html 上的类）。 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Vercel / Linear 风格主题令牌：
+ * 黑白灰单色调 + 发丝级边框 + 克制的语义色。
+ * 浅色为默认；暗色由 html.dark（手动/脚本同步）或「跟随系统且未强制浅色」触发。
+ * 组件统一使用 bg-background / text-muted-foreground 等语义色。
+ */
+:root {
+  color-scheme: light;
+  --background: #fafafa;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --muted: #f4f4f5;
+  --muted-foreground: #666666;
+  --primary: #171717;
+  --primary-foreground: #ffffff;
+  --accent: #ededed;
+  --accent-foreground: #171717;
+  --destructive: #cf222e;
+  --destructive-foreground: #ffffff;
+  --success: #1a7f37;
+  --warning: #9a6700;
+  --border: #eaeaea;
+  --input: #eaeaea;
+  --ring: #0070f3;
+  --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+}
+
+/* 手动选择的暗色（html.dark） */
+html.dark {
+  color-scheme: dark;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #141414;
+  --card-foreground: #ededed;
+  --muted: #1f1f1f;
+  --muted-foreground: #8f8f8f;
+  --primary: #ffffff;
+  --primary-foreground: #0a0a0a;
+  --accent: #232323;
+  --accent-foreground: #ededed;
+  --destructive: #f85149;
+  --destructive-foreground: #ffffff;
+  --success: #3fb950;
+  --warning: #e3b341;
+  --border: #262626;
+  --input: #262626;
+  --ring: #3291ff;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.22);
+}
+
+/* 跟随系统且未强制浅色时应用暗色（含首帧内联脚本未执行的兜底），令牌与 html.dark 一致 */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    --card: #141414;
+    --card-foreground: #ededed;
+    --muted: #1f1f1f;
+    --muted-foreground: #8f8f8f;
+    --primary: #ffffff;
+    --primary-foreground: #0a0a0a;
+    --accent: #232323;
+    --accent-foreground: #ededed;
+    --destructive: #f85149;
+    --destructive-foreground: #ffffff;
+    --success: #3fb950;
+    --warning: #e3b341;
+    --border: #262626;
+    --input: #262626;
+    --ring: #3291ff;
+    --scrollbar-thumb: rgba(255, 255, 255, 0.22);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+code,
+kbd,
+pre {
+  font-family:
+    ui-monospace,
+    "SF Mono",
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--ring) 24%, transparent);
+}
+
+/* 细滚动条（Linear 风格） */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* 弹窗 / 抽屉入场动画 */
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
