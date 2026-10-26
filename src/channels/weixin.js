@@ -6,6 +6,7 @@ import { beginRegistration, pollRegistration, createBotClient } from "./ilink.js
 import { createLoginSessionBase } from "./login-session.js";
 
 const POLL_ERROR_BACKOFF_MS = 5_000;
+const POLL_MAX_BACKOFF_MS = 30_000;
 const TYPING_TICKET_TTL_MS = 5 * 60_000;
 const QR_GRACE_MS = 30_000;
 const CDN_BASE_URL = "https://novac2c.cdn.weixin.qq.com/c2c";
@@ -52,6 +53,7 @@ function sniffImageExt(buffer) {
 
 const sleep = (ms, signal) =>
   new Promise((resolve) => {
+    if (signal?.aborted) return resolve();
     const timer = () => {
       clearTimeout(timerId);
       signal?.removeEventListener("abort", timer);
@@ -60,6 +62,14 @@ const sleep = (ms, signal) =>
     const timerId = setTimeout(timer, ms);
     signal?.addEventListener("abort", timer);
   });
+
+function describePollError(error) {
+  const message = error?.message || String(error);
+  const causes = [error, error?.cause, ...(Array.isArray(error?.cause?.errors) ? error.cause.errors : [])];
+  const codes = [...new Set(causes.map((cause) => cause?.code).filter((code) => typeof code === "string"))];
+  const detail = codes.join(", ") || error?.cause?.message;
+  return detail && !message.includes(detail) ? `${message} (${detail})` : message;
+}
 
 // 官方二维码原图在浏览器直接访问时是落地页，只有响应真是图片才可用（与 cli.js 同一判断）。
 async function downloadOfficialQr(url) {
@@ -180,7 +190,7 @@ export const weixinProvider = {
       },
 
       async start() {
-        if (controller) return;
+        if (controller || signal?.aborted) return;
         controller = new AbortController();
         const onGlobalAbort = () => bot.stop();
         signal?.addEventListener("abort", onGlobalAbort, { once: true });
@@ -199,17 +209,20 @@ export const weixinProvider = {
       },
 
       async runLoop(pollSignal) {
-        let announcedConnected = false;
+        let failures = 0;
+        let retryDelay = POLL_ERROR_BACKOFF_MS;
         while (!pollSignal.aborted) {
           const cursor = getCursor();
           try {
             const { messages, buf } = await client.getUpdates(cursor?.buf ?? null, pollSignal);
             if (pollSignal.aborted) return;
-            if (!announcedConnected) {
-              announcedConnected = true;
+            if (bot.status !== "connected") {
               bot.connectedAt = new Date().toISOString();
               bot.setStatus("connected");
+              if (failures) logger?.info(`weixin reconnected after ${failures} failed poll(s)`);
             }
+            failures = 0;
+            retryDelay = POLL_ERROR_BACKOFF_MS;
             if (!cursor?.initialized) {
               // 首次启动：只消费游标，不回放历史消息。
               setCursor({ buf, initialized: true });
@@ -227,9 +240,12 @@ export const weixinProvider = {
           } catch (error) {
             if (pollSignal.aborted) return;
             if (error.name === "TimeoutError" || error.name === "AbortError") continue;
-            bot.setStatus("error", error.message);
-            logger?.error(`weixin poll failed: ${error.message}`);
-            await sleep(POLL_ERROR_BACKOFF_MS, pollSignal);
+            failures++;
+            const reason = describePollError(error);
+            bot.setStatus("connecting", `${reason}；正在自动重连，${retryDelay / 1000} 秒后重试（第 ${failures} 次）`);
+            logger?.warn(`weixin poll failed: ${reason}; retry #${failures} in ${retryDelay / 1000}s`);
+            await sleep(retryDelay, pollSignal);
+            retryDelay = Math.min(retryDelay * 2, POLL_MAX_BACKOFF_MS);
             if (pollSignal.aborted) return;
           }
         }

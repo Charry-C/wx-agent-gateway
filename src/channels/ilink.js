@@ -130,7 +130,10 @@ export function createBotClient({ token }) {
       method: "POST",
       headers: buildBotHeaders(token),
       body: JSON.stringify({ base_info: { channel_version: CHANNEL_VERSION }, ...body }),
-      signal: signal ?? AbortSignal.timeout(timeoutMs),
+      // 关停信号与请求超时同时生效，避免传入 signal 后长轮询永久挂起。
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)])
+        : AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) throw new Error(`iLink POST ${path} failed: HTTP ${response.status}`);
     const merged = unwrapData(await response.json());
