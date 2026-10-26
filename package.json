@@ -5,6 +5,7 @@
   "type": "module",
   "description": "WeChat (iLink bot) <-> local coding agents bridge gateway",
   "files": [
+    "docs/images/",
     "src/",
     "scripts/",
     "tests/",

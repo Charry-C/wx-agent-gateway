@@ -246,6 +246,12 @@ data/                      # 本机运行数据，不分发
 
 新增 Agent 时，在 `src/agents.js` 实现执行与会话协议并注册适配器；发现和选择列表会随注册表更新。新增渠道时，实现对应 provider，并在入口中注册，复用现有路由和实例管理。
 
+## 微信交互流程
+
+下图展示微信扫码绑定、消息接收、本机 Agent 执行，以及结果回传的完整流程。
+
+![微信用户通过 wx-agent-gateway 与本机 Coding Agent 交互的时序图](docs/images/weixin-sequence.png)
+
 ## 常见问题
 
 **安装了 CLI，但页面没有识别到。**
