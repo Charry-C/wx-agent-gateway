@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { api, type GatewayConfig } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 
 const SANDBOX_MODES = ["read-only", "workspace-write", "full"] as const;
 
@@ -68,24 +69,29 @@ export default function Settings() {
         <CardContent className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>默认 agent</Label>
-            <Select value={form.defaultAgent} onChange={(e) => update("defaultAgent", e.target.value)}>
-              {!agentNames.includes(form.defaultAgent) && <option value={form.defaultAgent} disabled>{form.defaultAgent}（未安装）</option>}
-              {agentNames.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </Select>
+            <Select
+              className="w-full"
+              ariaLabel="默认 agent"
+              value={form.defaultAgent}
+              options={[
+                // 当前配置的 agent 未安装时仍显示，避免触发器出现空值。
+                ...(form.defaultAgent && !agentNames.includes(form.defaultAgent)
+                  ? [{ value: form.defaultAgent, label: `${form.defaultAgent}（未安装）` }]
+                  : []),
+                ...agentNames.map((name) => ({ value: name, label: name })),
+              ]}
+              onValueChange={(value) => update("defaultAgent", value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label>codex 沙箱</Label>
-            <Select value={form.codexSandbox} onChange={(e) => update("codexSandbox", e.target.value as GatewayConfig["codexSandbox"])}>
-              {SANDBOX_MODES.map((mode) => (
-                <option key={mode} value={mode}>
-                  {mode}
-                </option>
-              ))}
-            </Select>
+            <Select
+              className="w-full"
+              ariaLabel="codex 沙箱"
+              value={form.codexSandbox}
+              options={SANDBOX_MODES.map((mode) => ({ value: mode, label: mode }))}
+              onValueChange={(value) => update("codexSandbox", value as GatewayConfig["codexSandbox"])}
+            />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>默认工作目录（绝对路径）</Label>

@@ -12,7 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog } from "@/components/ui/dialog";
-import { Input, Label, Select } from "@/components/ui/input";
+import { Input, Label } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 
 const STATUS_TEXT: Record<BotStatus["status"], { label: string; variant: "success" | "warning" | "destructive" | "secondary" }> = {
   connected: { label: "在线", variant: "success" },
@@ -30,15 +31,20 @@ function AgentSelect({
   value: string;
   onChange: (name: string) => void;
 }) {
+  const options = agents.map((agent) => ({ value: agent.name, label: agent.label }));
+  // 当前绑定的 agent 未安装时仍要显示在列表里，避免触发器出现空值。
+  if (value && !options.some((option) => option.value === value)) {
+    options.unshift({ value, label: `${value}（未安装）` });
+  }
   return (
-    <Select className="h-7 w-28 text-xs" value={value} onChange={(event) => onChange(event.target.value)}>
-      {!agents.some((agent) => agent.name === value) && <option value={value} disabled>{value ? `${value}（未安装）` : "未检测到 Agent"}</option>}
-      {agents.map((agent) => (
-        <option key={agent.name} value={agent.name}>
-          {agent.label}
-        </option>
-      ))}
-    </Select>
+    <Select
+      className="w-28"
+      size="sm"
+      ariaLabel="选择 agent"
+      value={value}
+      options={options}
+      onValueChange={onChange}
+    />
   );
 }
 
